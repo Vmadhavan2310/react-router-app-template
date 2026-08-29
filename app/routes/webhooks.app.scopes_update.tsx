@@ -14,6 +14,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
             },
             data: {
                 scope: current.toString(),
+                firstName: 'Vinoth Madhavan'
             },
         });
     }

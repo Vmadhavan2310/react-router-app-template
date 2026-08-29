@@ -4,22 +4,55 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useFetcher } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { sessionStorage } from "../shopify.server";
+import prisma from "app/db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-
-  return null;
+  const { session } = await authenticate.admin(request);
+  return {
+    data: {
+      session: session.id,
+    },
+  };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const color = ["Red", "Orange", "Yellow", "Green"][
     Math.floor(Math.random() * 4)
   ];
+  
+  const userInfo = await prisma.userInfo.findUnique({
+    where: {
+      id: session.id,
+    },
+  });
+
+  if (userInfo) {
+    await prisma.userInfo.update({
+      where: {
+        id: session.id,
+      },
+      data: {
+        name: "John Cena",
+        email: 'John@gmail.com'
+      },
+    });
+  } else {
+    await prisma.userInfo.create({
+      data: {
+        id: session.id,
+        name: "Vinoth M",
+        email: "vinoth@gmail.com",
+      },
+    });
+  }
+  return {};
+  console.log("vinoth");
   const response = await admin.graphql(
     `#graphql
       mutation populateProduct($product: ProductCreateInput!) {
@@ -129,6 +162,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function Index() {
   const fetcher = useFetcher<typeof action>();
+  const {
+    data: { session },
+  } = useLoaderData<typeof loader>();
 
   const shopify = useAppBridge();
   const isLoading =
@@ -147,6 +183,12 @@ export default function Index() {
     <s-page heading="Shopify app template">
       <s-button slot="primary-action" onClick={generateProduct}>
         Generate a product
+      </s-button>
+      <s-button
+        slot="secondary-actions"
+        onClick={() => fetcher.submit({}, { method: "POST" })}
+      >
+        Updatesss
       </s-button>
 
       <s-section heading="Congrats on creating a new Shopify app 🎉">

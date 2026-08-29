@@ -235,3 +235,7 @@ Shopify:
 Internationalization:
 
 - [Internationalizing your app](https://shopify.dev/docs/apps/best-practices/internationalization/getting-started)
+
+- npx prisma generate
+- npx prisma migrate dev/deploy
+- npx prisma studio 

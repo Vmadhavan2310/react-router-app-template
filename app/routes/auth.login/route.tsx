@@ -8,7 +8,7 @@ import { loginErrorMessage } from "./error.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const errors = loginErrorMessage(await login(request));
-
+  console.log('auth.login', request.url)
   return { errors };
 };
 
